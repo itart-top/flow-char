@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.4",
+    "dagre": "^0.8.5",
+    "jsplumb": "^2.12.13",
     "vue": "^2.6.11"
   },
   "devDependencies": {
