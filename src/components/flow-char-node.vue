@@ -6,6 +6,13 @@
                             :node="n"
                             :key="n.id+ '_' + n.ver">
             </flow-char-node>
+            <template v-for="(e, index1) in node.subEdges">
+                <template v-for="(p, index2) in e.points">
+                    <div :key="index1 + '_' + index2+ '_' + e.points" :style="{position: 'absolute', top: p.y -2 + 'px', left: p.x -2 + 'px', width: '5px', height: '5px', background: 'red'}">
+
+                    </div>
+                </template>
+            </template>
         </slot>
     </component>
 </template>
