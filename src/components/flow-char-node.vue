@@ -1,10 +1,14 @@
 <template>
     <component :is="comp" :node="node" :style="nodeStyle" :id="'node_' + node.id"
+               @task-action="onAddTask"
+               :selected-id = "selectedId"
                :class="['node-window', node.nodeType.replace(':',' ')]">
         <slot>
             <flow-char-node v-for="n in node.subNodes"
+                            @task-action = "onAddTask"
+                            :selected-id ="selectedId"
                             :node="n"
-                            :key="n.id+ '_' + n.ver">
+                            :key="n.id+ '_' + n.ver + '_' + n.nodeType">
             </flow-char-node>
             <template v-for="(e, index1) in node.subEdges">
                 <template v-for="(p, index2) in e.points">
@@ -20,7 +24,7 @@
 <script>
   export default {
     name: 'flow-char-node',
-    props: ['node'],
+    props: ['node', 'selectedId'],
     computed: {
       nodeStyle () {
         return {
@@ -33,6 +37,11 @@
       },
       comp () {
         return () => import(`./node-type/${this.node.nodeType.replace(':', '/')}.vue`)
+      }
+    },
+    methods: {
+      onAddTask() {
+        return this.$emit('task-action', ...arguments)
       }
     }
 }

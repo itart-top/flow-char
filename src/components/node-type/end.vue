@@ -1,52 +1,66 @@
 <template>
- <div style="background: cornflowerblue" class="end">
-  <label> 结束 </label>
-  <i class="right" :style="{right: 0, top: node.height/2 + 'px'}"></i>
-  <i class="left" :style="{left: 0, top: node.height/2 + 'px'}"></i>
-  <i class="up" :style="{top: 0, left: node.width/2 + 'px'}"></i>
-  <i class="down" :style="{bottom: 0, left: node.width/2 + 'px'}"></i>
+ <div class="sub-start">
+  <div class="start_btn"></div>
+  <a :style="{ lineHeight: node.height + 'px'}"
+     class="arrow left" href="javascript:void(0)" @click="add('left')">
+  +
+  </a>
  </div>
 </template>
 
 <script>
   export default {
    props: ['node'],
-    name: "end"
+    name: "end",
+    methods: {
+     add(director){
+       this.$emit('task-action', 'add', this.node, director)
+     }
+    }
   }
 </script>
 
 <style scoped>
- .end:hover i {
-  opacity: 1
+ .start_btn{
+  width: 34px;
+  height: 34px;
+  background-color: #63c0a1;
+  border-radius: 50%;
  }
- i {
-  border: solid black;
-  border-width: 0 3px 3px 0;
-  display: inline-block;
-  padding: 3px;
-  opacity: 0;
-  cursor: pointer;
+ .sub-start > a {
+  text-decoration: none;
+ }
+ .start_btn:after{
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: white;
+  position: relative;
+  top: 9px;
+  left: 9px;
+ }
+ .sub-start:hover > .arrow, .sub-start:hover{
+  opacity: 1;
+ }
+ .arrow{
   position: absolute;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+  background: gainsboro;
   transition: 0.5s;
+  width: 15px;
+  color: darkgray;
  }
-
- .right {
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
+ .arrow:hover{
+  background: burlywood;
+  color: brown;
  }
-
- .left {
-  transform: rotate(135deg);
-  -webkit-transform: rotate(135deg);
- }
-
- .up {
-  transform: rotate(-135deg);
-  -webkit-transform: rotate(-135deg);
- }
-
- .down {
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
+ .arrow.left {
+  top:0;
+  bottom: 0;
+  left: -15px;
  }
 </style>

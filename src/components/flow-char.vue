@@ -1,7 +1,10 @@
 <template>
     <div>
-        <flow-char-node id="flow_char_root"
-                        :node="node" :style="{ width: '100%', height: node.height + 'px', position: 'relative'}">
+        <flow-char-node id="node_char_root"
+                        @task-action="onTaskAdd"
+                        :selected-id = "selectedId"
+                        :node="node"
+                        :style="{ width: '100%', height: node.height + 'px', position: 'relative'}">
         </flow-char-node>
     </div>
 </template>
@@ -14,7 +17,7 @@
   export default {
     name: 'flow-char',
     components: {FlowCharNode},
-    props: ['node'],
+    props: ['node', 'selectedId', 'settings'],
     data () {
       return {
         jp: undefined
@@ -27,13 +30,33 @@
       empty2array (arr) {
         return arr || []
       },
+      anchor(node, x, y) {
+        if (this.nearly(node.y - 0.5 * node.height, y)){
+          return 'TopCenter'
+        }
+        if (this.nearly(node.y + 0.5 * node.height, y)){
+          return 'BottomCenter'
+        }
+        if (this.nearly(node.x + 0.5 * node.width, x)){
+          return 'Right'
+        }
+        if (this.nearly(node.x - 0.5 * node.width, x)) {
+          return 'Left'
+        }
+        return 'Right'
+      },
+      nearly(v1, v2){
+        const diff = v1 - v2
+        return diff < 1 && diff > -1
+      },
       layout (node) {
+        console.log(111)
         if (!node.subNodes || node.subNodes.length === 0) {
           return
         }
         const g = new dagre.graphlib.Graph({directed: true})
         g.setGraph({
-          rankdir: 'LR', nodesep: 16, ranksep: 30, rangker: 'network-simplex',
+          rankdir: 'LR', nodesep: 16, ranksep: 30, rangker: this.settings.ranker,
           marginx: 20, marginy: 20
         })
         g.setDefaultEdgeLabel(function () {
@@ -42,7 +65,7 @@
         this.empty2array(node.subNodes).forEach(n => {
           this.layout(n)
           g.setNode(n.id, {
-            lable: n.name,
+            label: n.name,
             width: n.width,
             height: n.height,
             data: n
@@ -68,14 +91,28 @@
           }
           let _node = node.subNodes.find(n => n.id === e.nodeId)
           let point = e.points[0]
-          const startEp = this.jp.addEndpoint('node_' + e.nodeId, {
-            anchor: [0, 0, 0, 0, point.x - (_node.x - _node.width / 2), point.y - (_node.y - _node.height / 2)]
-          })
+          let startEp
+          if (_node.shape === 'circle'){
+            startEp = this.jp.addEndpoint('node_' + e.nodeId, {
+              anchor: [this.anchor(_node, point.x, point.y)]
+            })
+          } else {
+            startEp = this.jp.addEndpoint('node_' + e.nodeId, {
+              anchor: [0, 0, 0, 0, point.x - (_node.x - _node.width / 2), point.y - (_node.y - _node.height / 2)]
+            })
+          }
           point = e.points[e.points.length - 1]
           _node = node.subNodes.find(n => n.id === e.nextNodeId)
-          const endEp = this.jp.addEndpoint('node_' + e.nextNodeId, {
-            anchor: [0, 0, 0, 0, point.x - (_node.x - _node.width / 2), point.y - (_node.y - _node.height / 2)]
-          })
+          let endEp
+          if (_node.shape === 'circle'){
+            endEp = this.jp.addEndpoint('node_' + e.nextNodeId, {
+              anchor: [this.anchor(_node, point.x, point.y)]
+            })
+          } else {
+            endEp = this.jp.addEndpoint('node_' + e.nextNodeId, {
+              anchor: [0, 0, 0, 0, point.x - (_node.x - _node.width / 2), point.y - (_node.y - _node.height / 2)]
+            })
+          }
           this.jp.connect({
             source: startEp,
             target: endEp,
@@ -85,6 +122,25 @@
         this.empty2array(node.subNodes).forEach(n => {
           this.connect(n)
         })
+      },
+      allMounted(el, node, cache) {
+        const id = 'node_' + node.id
+        const ok = cache[id] || el.querySelector('#' + id)
+        if (!ok) {
+          return false
+        }
+        cache[id] = true
+        for (let i = 0, size = node.subNodes.length; i< size ; i++){
+          const sub = node.subNodes[i]
+          const ok = this.allMounted(el, sub, cache)
+          if (!ok) {
+            return false
+          }
+        }
+        return true
+      },
+      onTaskAdd() {
+        this.$emit('task-action', ...arguments)
       }
     },
     mounted () {
@@ -94,12 +150,20 @@
           EndpointStyle: {radius: 0.11}, // 端点样式
           PaintStyle: {strokeWidth: 2, stroke: '#ffa500'},
           EndpointHoverStyle: {fill: '#ffa500'},
-          Connector: ['Flowchart', {stub: 10}],
-          Container: 'flow_char_root'
+          Connector: this.settings.connector,
+          Container: 'node_char_root'
         })
-        setTimeout(() => {
-          this.connect(this.node)
-        }, 1000)
+        const cache = {}
+        const doConnect = () => {
+          if (this.allMounted(this.$el, this.node, cache)){
+            this.connect(this.node)
+          } else {
+            setTimeout(doConnect, 100)
+          }
+        }
+        this.$nextTick(() => {
+          doConnect()
+        })
       })
     }
   }

@@ -1,12 +1,21 @@
 <template>
- <div>
-  <button class="button" style="vertical-align:middle"><span>开始 </span></button>
+ <div style="line-height: 0">
+  <button @click="add('right')" :style="{height:node.height + 'px'}"
+          class="button"
+          style="vertical-align:middle">
+   <span>开始 </span></button>
  </div>
 </template>
 
 <script>
   export default {
-    name: "start"
+    name: "start",
+    props: ['node'],
+    methods: {
+      add(director){
+        this.$emit('task-action', 'add', this.node, director)
+      }
+    }
   }
 </script>
 
@@ -14,13 +23,13 @@
  .button {
   display: inline-block;
   border-radius: 4px;
-  background-color: #f4511e;
+  background-color: #409EFF;
   border: none;
   color: #FFFFFF;
   text-align: center;
-  font-size: 28px;
-  padding: 20px;
-  width: 200px;
+  font-size: 14px;
+  padding: 5px;
+  width: 80px;
   transition: all 0.5s;
   cursor: pointer;
  }
